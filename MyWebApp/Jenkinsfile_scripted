@@ -1,0 +1,41 @@
+node {
+    def mvnHome = tool 'Maven3'
+    stage('Checkout') { // for display purposes
+        // Get some code from a GitHub repository
+        git branch: 'main', credentialsId: '623f3a75-c41f-4943-975c-6ccf9ec3cba1', url: 'https://github.com/samv1214/devSecOps-ak'
+    }
+    
+    stage('Build') {
+        // Run the maven build
+        withEnv(["MVN_HOME=$mvnHome"]) {
+            if (isUnix()) {
+                sh '$MVN_HOME/bin/mvn clean install -f MyWebApp/pom.xml'
+            } else {
+                bat(/"%MVN_HOME%\bin\mvn" -Dmaven.test.failure.ignore clean package/)
+            }
+        }
+    }
+
+    stage('Code Quality-SonarQube'){
+        withSonarQubeEnv(credentialsId: '2f858904-246b-4e16-8aee-42b69fc60392') {
+            sh '$MVN_HOME/bin/mvn sonar:sonar -f MyWebApp/pom.xml'
+        }
+    }
+    
+    stage('Code Coverage-Jacoco'){
+        jacoco()
+    }
+    
+    stage('Artifact Deployment-Nexus'){
+        nexusArtifactUploader artifacts: [[artifactId: 'MyWebApp', classifier: '', file: 'MyWebApp/target/MyWebApp.war', type: 'war']], credentialsId: '62a04e44-252f-4df2-9bac-7b519ffc53aa', groupId: 'com.dept.app', nexusUrl: 'ec2-3-85-30-207.compute-1.amazonaws.com:8081', nexusVersion: 'nexus3', protocol: 'http', repository: 'maven-snapshots', version: '1.0-SNAPSHOT'
+    }
+    
+    stage('Dev Deploy') {
+        deploy adapters: [tomcat9(credentialsId: '849bcfba-7458-481e-9358-630940ceb373', path: '', url: 'http://ec2-44-202-159-125.compute-1.amazonaws.com:8080')], contextPath: null, war: '**/*.war'
+    }
+    
+    stage('Slack Notification'){
+        slackSend (channel: 'all-jenkins-testing', message: "Job is successful, here is the info - Job '${env.JOB_NAME}'/ '${env.BUILD_NUMBER}'/ '${env.BUILD_URL}")
+    }
+
+}
