@@ -14,20 +14,14 @@ pipeline {
 
         stage('Build') {
             steps{
-                // Run the maven build
-                withEnv(["MVN_HOME=$mvnHome"]) {
-                    if (isUnix()) {
-                        sh '$MVN_HOME/bin/mvn -f MyWebApp/pom.xml clean install'
-                    } else {
-                        bat(/"%MVN_HOME%\bin\mvn" -Dmaven.test.failure.ignore clean package/)
-                    }
-                }
+                sh 'mvn -f MyWebApp/pom.xml clean install'
             }
         }
+        
 
         stage('Code Quality-SonarQube'){
             steps{
-                withSonarQubeEnv(credentialsId: '2f858904-246b-4e16-8aee-42b69fc60392') {
+                withSonarQubeEnv('SonarQube') {
                     sh '$MVN_HOME/bin/mvn -f MyWebApp/pom.xml sonar:sonar'
                 }
             }
