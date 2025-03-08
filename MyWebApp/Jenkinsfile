@@ -6,11 +6,11 @@ pipeline {
         maven "Maven3"
     }
     stages{
-        stage('Checkout') {
+        /*stage('Checkout') {
             steps{
                 git branch: 'main', credentialsId: '623f3a75-c41f-4943-975c-6ccf9ec3cba1', url: 'https://github.com/samv1214/devSecOps-ak'
             }
-        }
+        }*/
 
         stage('Build') {
             steps{
