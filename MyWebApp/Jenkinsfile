@@ -39,7 +39,7 @@ pipeline {
             }
         }
 
-        stage('Dev Deploy') {
+        stage('Dev Deploy-multibranch') {
             steps{
                 deploy adapters: [tomcat9(credentialsId: '849bcfba-7458-481e-9358-630940ceb373', path: '', url: 'http://ec2-44-202-159-125.compute-1.amazonaws.com:8080')], contextPath: null, war: '**/*.war'
             }
@@ -47,7 +47,7 @@ pipeline {
 
         stage('Slack Notification'){
             steps{
-                slackSend (channel: 'all-jenkins-testing', message: "Job is successful, here is the info - Job '${env.JOB_NAME}'/ '${env.BUILD_NUMBER}'/ '${env.BUILD_URL}")
+                slackSend (channel: 'all-jenkins-testing', message: "Job is successful with multi branch and we are in multi branch jenkins file, here is the info - Job '${env.JOB_NAME}'/ '${env.BUILD_NUMBER}'/ '${env.BUILD_URL}")
             }
         }
     }
